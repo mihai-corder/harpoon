@@ -30,7 +30,7 @@ Existing tools solve half the workflow. GUI-era clients (Postman/newman) lock co
 go install github.com/mihai-corder/harpoon@latest
 ```
 
-Requires Go 1.22+ to build. A single static binary, no runtime dependencies.
+Requires Go 1.22+ to build. A single static binary, no runtime dependencies. Prebuilt binaries for Windows / Linux / macOS are available on the [Releases](https://github.com/mihai-corder/harpoon/releases) page.
 
 ## Quickstart
 

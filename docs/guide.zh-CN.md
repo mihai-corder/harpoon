@@ -216,7 +216,7 @@ harpoon share report.html
 ```
 
 ```text
-  shared:  https://harpoon-share.mihai-corder.workers.dev/r/Ab3xK9mQ
+  shared:  https://harpoon-share.1962554030-517.workers.dev/r/Ab3xK9mQ
   expires: 2027-02-19T00:00:00Z
   revoke:  curl -X DELETE "https://.../r/Ab3xK9mQ" -H "X-Delete-Token: ..."
 ```
@@ -226,6 +226,8 @@ harpoon share report.html
 - 上传返回的 delete token 可以随时撤销（撤销命令已经帮你拼好，直接复制执行）
 - 页面以 `Content-Security-Policy: sandbox` 提供——上传的内容无法在源站执行任何脚本
 - 想自建？`wrangler deploy` 一下 `server/`，然后 `harpoon share --server https://你的域名` 即可，见 [server/README.md](../server/README.md)
+
+> **中国大陆网络说明**：`*.workers.dev` 在部分大陆网络下无法直连（DNS 污染）。CI 里的分享不受影响（GitHub Actions 服务器可直连）；本机上传如遇 `share server unreachable`，可通过代理，或按 [server/README.md](../server/README.md) 自建实例后 `--server` 指向你自己的域名。
 
 GitHub Action 里 PR 评论会自动附上这个公开链接（`share` 输入默认开启）。
 

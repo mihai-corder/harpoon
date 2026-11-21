@@ -13,7 +13,7 @@ import (
 
 // DefaultServer is the maintainer-hosted instance. Self-hosters override it
 // with --server or HARPOON_SHARE_SERVER.
-const DefaultServer = "https://harpoon-share.mihai-corder.workers.dev"
+const DefaultServer = "https://harpoon-share.1962554030-517.workers.dev"
 
 // Client talks to a harpoon-share server.
 type Client struct {
@@ -52,7 +52,9 @@ func (c *Client) Upload(html []byte, collection string) (Result, error) {
 
 	res, err := c.HTTP.Do(req)
 	if err != nil {
-		return Result{}, fmt.Errorf("share server unreachable at %s: %w", c.Server, err)
+		return Result{}, fmt.Errorf(
+			"share server unreachable at %s: %w (note: *.workers.dev is unreachable from some networks — run your own instance from server/ and pass --server)",
+			c.Server, err)
 	}
 	defer res.Body.Close()
 

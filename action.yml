@@ -46,7 +46,7 @@ inputs:
   share-server:
     description: "harpoon-share server base URL used when share is enabled"
     required: false
-    default: "https://harpoon-share.mihai-corder.workers.dev"
+    default: "https://harpoon-share.1962554030-517.workers.dev"
 
 outputs:
   report:

@@ -158,7 +158,7 @@ harpoon share report.html
 ```
 
 ```text
-  shared:  https://harpoon-share.mihai-corder.workers.dev/r/Ab3xK9mQ
+  shared:  https://harpoon-share.1962554030-517.workers.dev/r/Ab3xK9mQ
   expires: 2027-02-19T00:00:00Z
   revoke:  curl -X DELETE "https://.../r/Ab3xK9mQ" -H "X-Delete-Token: ..."
 ```

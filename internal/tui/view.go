@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/mihai-corder/harpoon/internal/runner"
 )
 
 // timeNow is indirected so tests can pin timestamps.
@@ -186,9 +188,17 @@ func (m *Model) syncSizes() {
 // syncViewportContent rebuilds the response pane for the selected request.
 func (m *Model) syncViewportContent() {
 	if r, ok := m.currentResult(); ok {
-		m.respVP.SetContent(responseView(r))
-		m.respVP.GotoTop()
+		m.syncViewportContentWith(r)
 	}
+}
+
+// syncViewportContentWith is the testable core of syncViewportContent.
+func (m *Model) syncViewportContentWith(r runner.Result) {
+	// Soft-wrap long lines (huge header values etc.) to the pane width; the
+	// viewport itself only scrolls vertically.
+	content := lipgloss.NewStyle().Width(m.respVP.Width).Render(responseView(r))
+	m.respVP.SetContent(content)
+	m.respVP.GotoTop()
 }
 
 // syncHistoryContent rebuilds the history overlay's scrollable content,

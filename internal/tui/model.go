@@ -70,7 +70,10 @@ func New(coll *config.Collection, profile, cliVars map[string]string) Model {
 	}
 }
 
-func (m Model) Init() tea.Cmd { return nil }
+func (m Model) Init() tea.Cmd {
+	// Own the window/tab title instead of inheriting the shell's command line.
+	return tea.SetWindowTitle("harpoon · " + m.coll.Name)
+}
 
 // current returns the request under the cursor.
 func (m Model) current() config.NamedRequest {

@@ -1,0 +1,15 @@
+# build output
+harpoon
+harpoon.exe
+*.exe
+/dist/
+
+# test artifacts
+*.out
+coverage.*
+
+# editors & OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

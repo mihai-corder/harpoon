@@ -1,0 +1,33 @@
+# A tiny demo collection that runs against GitHub's public API —
+# no authentication required. Try it:
+#
+#   harpoon run testdata/example/collection.yaml
+name: github-demo
+
+vars:
+  user: octocat
+
+requests:
+  zen:
+    method: GET
+    url: https://api.github.com/zen
+    expect:
+      status: 200
+      max_ms: 3000
+
+  user-info:
+    method: GET
+    url: https://api.github.com/users/{{user}}
+    expect:
+      status: 200
+      contains: "login"
+    extract:
+      login: "{{response.body.login}}"
+
+  first-repo:
+    method: GET
+    url: https://api.github.com/users/{{login}}/repos?per_page=1&sort=updated
+    expect:
+      status: 200
+    extract:
+      repo_name: "{{response.body.0.name}}"

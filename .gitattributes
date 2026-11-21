@@ -1,0 +1,10 @@
+# Normalize all text files to LF in the repository; Go tooling and CI expect it.
+* text=auto eol=lf
+
+# Windows scripts keep CRLF so they stay runnable in cmd.exe.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets are never normalized.
+*.png binary
+*.gif binary

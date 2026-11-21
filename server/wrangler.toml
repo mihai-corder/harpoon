@@ -1,0 +1,8 @@
+name = "harpoon-share"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# After `wrangler kv namespace create REPORTS`, paste the returned id here:
+[[kv_namespaces]]
+binding = "REPORTS"
+id = "REPLACE_WITH_NAMESPACE_ID"

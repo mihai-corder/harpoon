@@ -208,6 +208,27 @@ harpoon ci collection.yaml [--json report.json] [--html report.html]
 
 注意：**即使请求失败，报告也会先写盘再退出**，所以 CI 拿得到失败详情。
 
+### 5.7 `harpoon share` —— 公开分享报告
+
+```sh
+harpoon ci collection.yaml --html report.html
+harpoon share report.html
+```
+
+```text
+  shared:  https://harpoon-share.mihai-corder.workers.dev/r/Ab3xK9mQ
+  expires: 2027-02-19T00:00:00Z
+  revoke:  curl -X DELETE "https://.../r/Ab3xK9mQ" -H "X-Delete-Token: ..."
+```
+
+- 报告存放在 Cloudflare Worker 上（仓库 `server/` 目录，~200 行 JS），任何人打开链接即可看完整报告
+- **90 天自动过期**、单个报告上限 1MB、每 IP 每小时 20 次上传限流
+- 上传返回的 delete token 可以随时撤销（撤销命令已经帮你拼好，直接复制执行）
+- 页面以 `Content-Security-Policy: sandbox` 提供——上传的内容无法在源站执行任何脚本
+- 想自建？`wrangler deploy` 一下 `server/`，然后 `harpoon share --server https://你的域名` 即可，见 [server/README.md](../server/README.md)
+
+GitHub Action 里 PR 评论会自动附上这个公开链接（`share` 输入默认开启）。
+
 ---
 
 ## 6. 配置参考
@@ -414,7 +435,9 @@ go run . run testdata/example/collection.yaml
 - ✅ v0.2 终端 TUI
 - ✅ v0.3 本地 Web 界面
 - ✅ v0.4 CI 模式（`harpoon ci` 双格式报告 + 官方 GitHub Action PR 评论机器人）
-- 🔜 v0.5 云端报告分享
+- ✅ v0.5 云端报告分享（`harpoon share` + Cloudflare Worker，PR 评论自带公开链接）
+
+**原定路线图已全部完成，项目进入维护模式。**
 
 发现问题或想要新功能，欢迎提 [Issue](https://github.com/mihai-corder/harpoon/issues)。
 

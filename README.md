@@ -22,7 +22,7 @@ Existing tools solve half the workflow. GUI-era clients (Postman/newman) lock co
 | Interactive terminal UX | ✅ TUI | ❌ | ✅ | ❌ |
 | CI smoke tests from the same files | ✅ | ✅ | ❌ | ✅ (Postman-locked) |
 | PR report bot | ✅ | ❌ | ❌ | ❌ |
-| Shareable web report | 🔜 v0.5 | ❌ | ❌ | ❌ |
+| Shareable web report | ✅ | ❌ | ❌ | ❌ |
 
 ## Install
 
@@ -84,6 +84,7 @@ harpoon run collection.yaml --env dev --var password=s3cret
 |---|---|
 | `harpoon run <collection>` | Execute requests in order, print summary. Exit code 1 on any failure — CI-friendly. |
 | `harpoon ci <collection>` | CI variant: JSON + HTML reports, same exit-code contract. |
+| `harpoon share <report.html>` | Upload a report, get a public link (expires in 90 days, revocable). |
 | `harpoon tui <collection>` | Interactive terminal UI: pick requests, run them, inspect responses. |
 | `harpoon serve <collection>` | Local web UI in your browser: click to run, inspect, browse history. |
 | `harpoon validate <collection>` | Structural + reference checks, no HTTP. Undefined variables are warnings. |
@@ -147,7 +148,22 @@ jobs:
           token: ${{ github.token }}
 ```
 
-The PR comment shows a per-request table with pass/fail and the exact assertion failures. On push branches the run behaves identically minus the comment.
+The PR comment shows a per-request table with pass/fail and the exact assertion failures, plus a link to the shared HTML report. On push branches the run behaves identically minus the comment.
+
+## Report sharing
+
+```sh
+harpoon ci smoke.yaml --html report.html
+harpoon share report.html
+```
+
+```text
+  shared:  https://harpoon-share.mihai-corder.workers.dev/r/Ab3xK9mQ
+  expires: 2027-02-19T00:00:00Z
+  revoke:  curl -X DELETE "https://.../r/Ab3xK9mQ" -H "X-Delete-Token: ..."
+```
+
+Reports live on a tiny Cloudflare Worker ([server/](server/README.md)): 90-day expiry, 1 MiB cap, 20 uploads/hour per IP, and served with `Content-Security-Policy: sandbox` so uploaded content can never run scripts on the origin. Anyone can self-host the Worker and point `--server` at their own instance.
 
 Useful flags on `run`:
 
@@ -191,7 +207,9 @@ A request without `expect` passes as long as the HTTP exchange succeeds.
 - [x] **v0.2** — TUI: interactive runner, response inspector, session-chained runs, history
 - [x] **v0.3** — local web UI: `harpoon serve`, embedded frontend, JSON API, session history
 - [x] **v0.4** — CI: `harpoon ci` (JSON + HTML reports) + official GitHub Action with PR comment bot
-- [ ] **v0.5** — shareable cloud reports (report upload, public links)
+- [x] **v0.5** — report sharing: `harpoon share` + Cloudflare Worker host, public links in PR comments
+
+*The original roadmap is complete — harpoon is now in maintenance mode.*
 
 ## Development
 

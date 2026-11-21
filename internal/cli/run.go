@@ -42,29 +42,45 @@ usable as a CI smoke test.`,
 }
 
 func runCollection(path string, f runFlags) error {
+	_, results, err := loadAndRun(path, f.env, f.vars, f.only)
+	if err != nil {
+		return err
+	}
+	report.Print(os.Stdout, results)
+	finishOrExit(results)
+	return nil
+}
+
+// loadAndRun loads the collection (plus profile and CLI overrides) and
+// executes it. It is shared by the run and ci commands so both behave
+// identically.
+func loadAndRun(path, env string, varsRaw, only []string) (*config.Collection, []runner.Result, error) {
 	coll, err := config.Load(path)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
-	profile, err := config.LoadProfile(path, f.env)
+	profile, err := config.LoadProfile(path, env)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
-	cliVars, err := parseVars(f.vars)
+	cliVars, err := parseVars(varsRaw)
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 	target := coll
-	if len(f.only) > 0 {
-		target, err = config.Select(coll, f.only)
+	if len(only) > 0 {
+		target, err = config.Select(coll, only)
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
 	}
-
 	results := runner.Run(target, profile, runner.Options{CLIVars: cliVars})
-	report.Print(os.Stdout, results)
+	return target, results, nil
+}
 
+// finishOrExit prints the failure summary and exits non-zero, the contract
+// CI systems rely on.
+func finishOrExit(results []runner.Result) {
 	passed := 0
 	for _, r := range results {
 		if r.Passed() {
@@ -75,7 +91,6 @@ func runCollection(path string, f runFlags) error {
 		fmt.Fprintf(os.Stderr, "harpoon: %d of %d request(s) failed\n", len(results)-passed, len(results))
 		os.Exit(1)
 	}
-	return nil
 }
 
 func parseVars(pairs []string) (map[string]string, error) {

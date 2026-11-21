@@ -21,7 +21,8 @@ Existing tools solve half the workflow. GUI-era clients (Postman/newman) lock co
 | Collections as plain YAML, git-friendly | ✅ | own format | ✅ | Postman format |
 | Interactive terminal UX | ✅ TUI | ❌ | ✅ | ❌ |
 | CI smoke tests from the same files | ✅ | ✅ | ❌ | ✅ (Postman-locked) |
-| PR report bot + shareable web report | 🔜 v0.4–0.5 | ❌ | ❌ | ❌ |
+| PR report bot | ✅ | ❌ | ❌ | ❌ |
+| Shareable web report | 🔜 v0.5 | ❌ | ❌ | ❌ |
 
 ## Install
 
@@ -82,6 +83,7 @@ harpoon run collection.yaml --env dev --var password=s3cret
 | Command | Purpose |
 |---|---|
 | `harpoon run <collection>` | Execute requests in order, print summary. Exit code 1 on any failure — CI-friendly. |
+| `harpoon ci <collection>` | CI variant: JSON + HTML reports, same exit-code contract. |
 | `harpoon tui <collection>` | Interactive terminal UI: pick requests, run them, inspect responses. |
 | `harpoon serve <collection>` | Local web UI in your browser: click to run, inspect, browse history. |
 | `harpoon validate <collection>` | Structural + reference checks, no HTTP. Undefined variables are warnings. |
@@ -113,6 +115,39 @@ harpoon serve collection.yaml --addr :3000 --open=false
 ```
 
 A dark, mouse-first interface served from inside the binary: click requests to run them, inspect status badges, per-assertion results, extracted variables, headers and syntax-highlighted JSON, and browse session history in a slide-over drawer. The frontend is plain HTML/CSS/JS embedded with `//go:embed` — the tool stays a single static executable with zero runtime dependencies, and the same runner session powers it, so variable chains work here too.
+
+## CI / GitHub Action
+
+`harpoon ci` writes machine-readable reports and keeps the same exit-code contract as `run`:
+
+```sh
+harpoon ci smoke.yaml --json report.json --html report.html
+```
+
+The official composite action in this repository wires it into any workflow — it installs harpoon, runs your collection, uploads the HTML report as an artifact and posts a results table as a PR comment:
+
+```yaml
+name: Smoke Test
+on: [push]
+
+permissions:
+  pull-requests: write   # needed for the PR comment
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mihai-corder/harpoon@main   # pin a tag after release
+        with:
+          collection: smoke.yaml
+          # env: dev
+          # vars: |
+          #   base_url=${{ vars.STAGING_URL }}
+          token: ${{ github.token }}
+```
+
+The PR comment shows a per-request table with pass/fail and the exact assertion failures. On push branches the run behaves identically minus the comment.
 
 Useful flags on `run`:
 
@@ -155,7 +190,7 @@ A request without `expect` passes as long as the HTTP exchange succeeds.
 - [x] **v0.1** — core engine: YAML collections, variable chaining, assertions, summary output
 - [x] **v0.2** — TUI: interactive runner, response inspector, session-chained runs, history
 - [x] **v0.3** — local web UI: `harpoon serve`, embedded frontend, JSON API, session history
-- [ ] **v0.4** — `harpoon ci` + official GitHub Action: PR comment bot, HTML report
+- [x] **v0.4** — CI: `harpoon ci` (JSON + HTML reports) + official GitHub Action with PR comment bot
 - [ ] **v0.5** — shareable cloud reports (report upload, public links)
 
 ## Development

@@ -191,6 +191,23 @@ harpoon list collection.yaml
 
 打印文件里有哪些请求、按什么顺序执行。`--request` 选择子集时用它先确认名字。
 
+### 5.6 `harpoon ci` —— CI 报告模式
+
+```sh
+harpoon ci collection.yaml [--json report.json] [--html report.html]
+```
+
+执行语义和 `run` 完全一致（失败退出码 1），额外产出报告：
+
+- `--json report.json`：机器可读报告（每个请求的状态、耗时、逐条断言结果、失败原因）——给脚本和 GitHub Action 消费
+- `--html report.html`：自包含的深色 HTML 报告页——直接扔给 CI 的 artifact，或者发给人看
+
+实际报告长这样：
+
+![CI HTML 报告](ci-report.png)
+
+注意：**即使请求失败，报告也会先写盘再退出**，所以 CI 拿得到失败详情。
+
 ---
 
 ## 6. 配置参考
@@ -307,27 +324,44 @@ harpoon run collection.yaml --env dev     # 本地调试
 harpoon run collection.yaml --env prod    # 上线前冒烟
 ```
 
-### 菜谱 C：CI 冒烟测试（GitHub Actions）
+### 菜谱 C：CI 冒烟测试（GitHub Actions 官方 Action）
+
+最省事的方式——直接用本仓库自带的 composite action，它会安装 harpoon、跑你的集合、上传 HTML 报告，并**在 PR 里自动评论结果表格**：
 
 ```yaml
 # .github/workflows/smoke.yml
 name: Smoke Test
 on: [push]
+
+permissions:
+  pull-requests: write        # PR 评论需要这个权限
+
 jobs:
   smoke:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: mihai-corder/harpoon@main        # 发版后建议固定到 tag
         with:
-          go-version: stable
+          collection: smoke.yaml
+          # env: dev                            # 可选：环境 profile
+          # vars: |                             # 可选：变量覆盖，每行一个 KEY=VALUE
+          #   base_url=${{ vars.STAGING_URL }}
+          token: ${{ github.token }}            # 默认值，写出来仅为示意
+```
+
+接口挂了 → PR 里出现红 ❌ 表格和具体失败原因 → 运行页可下载 HTML 报告。
+
+不想用 Action 的话，手动等价写法：
+
+```yaml
       - run: go install github.com/mihai-corder/harpoon@latest
-      - run: harpoon run smoke.yaml
+      - run: harpoon ci smoke.yaml --json report.json --html report.html
         env:
           APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
 ```
 
-接口挂了 → 这一步红 → PR 上直接可见。这正是 harpoon 和纯 TUI 工具的核心差异：**同一份文件，人能交互着用，机器能自动化跑**。
+这正是 harpoon 和纯 TUI 工具的核心差异：**同一份文件，人能交互着用，机器能自动化跑，PR 上还有可读的报告**。
 
 ### 菜谱 D：只跑一部分
 
@@ -379,7 +413,7 @@ go run . run testdata/example/collection.yaml
 - ✅ v0.1 核心引擎（CLI + 变量链 + 断言）
 - ✅ v0.2 终端 TUI
 - ✅ v0.3 本地 Web 界面
-- 🔜 v0.4 CI 报告机器人（GitHub Action：PR 里自动评论测试报告）
+- ✅ v0.4 CI 模式（`harpoon ci` 双格式报告 + 官方 GitHub Action PR 评论机器人）
 - 🔜 v0.5 云端报告分享
 
 发现问题或想要新功能，欢迎提 [Issue](https://github.com/mihai-corder/harpoon/issues)。

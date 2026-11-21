@@ -40,7 +40,7 @@ func TestActionYamlIsValid(t *testing.T) {
 	assert.Equal(t, "composite", doc.Runs.Using)
 	assert.NotEmpty(t, doc.Runs.Steps)
 
-	for _, key := range []string{"collection", "comment", "token"} {
+	for _, key := range []string{"collection", "comment", "token", "share", "share-server"} {
 		assert.Contains(t, doc.Inputs, key)
 	}
 
@@ -49,6 +49,7 @@ func TestActionYamlIsValid(t *testing.T) {
 		stepNames = append(stepNames, s.Name)
 	}
 	assert.Contains(t, stepNames, "Run harpoon ci")
+	assert.Contains(t, stepNames, "Share HTML report")
 	assert.Contains(t, stepNames, "Post PR comment")
 }
 

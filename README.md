@@ -6,7 +6,7 @@
 
 ![CI](https://github.com/mihai-corder/harpoon/actions/workflows/ci.yml/badge.svg)
 
-<!-- TODO(v0.2): replace with a recorded GIF of the TUI.
+<!-- TODO(v0.3): replace with a recorded GIF of the TUI.
 ![demo](docs/demo.gif)
 -->
 
@@ -17,7 +17,7 @@ Existing tools solve half the workflow. GUI-era clients (Postman/newman) lock co
 | | harpoon | hurl | posting / slumber | newman |
 |---|---|---|---|---|
 | Collections as plain YAML, git-friendly | ✅ | own format | ✅ | Postman format |
-| Interactive terminal UX | ✅ (TUI in v0.2) | ❌ | ✅ | ❌ |
+| Interactive terminal UX | ✅ TUI | ❌ | ✅ | ❌ |
 | CI smoke tests from the same files | ✅ | ✅ | ❌ | ✅ (Postman-locked) |
 | PR report bot + shareable web report | 🔜 v0.3–0.4 | ❌ | ❌ | ❌ |
 
@@ -80,8 +80,27 @@ harpoon run collection.yaml --env dev --var password=s3cret
 | Command | Purpose |
 |---|---|
 | `harpoon run <collection>` | Execute requests in order, print summary. Exit code 1 on any failure — CI-friendly. |
+| `harpoon tui <collection>` | Interactive terminal UI: pick requests, run them, inspect responses. |
 | `harpoon validate <collection>` | Structural + reference checks, no HTTP. Undefined variables are warnings. |
 | `harpoon list <collection>` | List requests in run order. |
+
+## Interactive TUI
+
+```sh
+harpoon tui collection.yaml
+```
+
+A two-pane interface: pick requests on the left, inspect responses on the right — status, per-assertion results, extracted variables, headers and pretty-printed JSON bodies. The session carries extracted variables across runs: log in once, then re-run any authenticated request on its own.
+
+| Key | Action |
+|---|---|
+| `↑/k` `↓/j` | Move in the focused pane |
+| `tab` | Switch focus between request list and response |
+| `enter` | Run the selected request |
+| `R` | Run all requests, in collection order |
+| `h` | Session history (newest first) |
+| `ctrl+u` / `ctrl+d` | Scroll the response half a page |
+| `q` | Quit |
 
 Useful flags on `run`:
 
@@ -122,7 +141,7 @@ A request without `expect` passes as long as the HTTP exchange succeeds.
 ## Roadmap
 
 - [x] **v0.1** — core engine: YAML collections, variable chaining, assertions, summary output
-- [ ] **v0.2** — TUI (bubbletea): interactive runner, history, response viewer
+- [x] **v0.2** — TUI: interactive runner, response inspector, session-chained runs, history
 - [ ] **v0.3** — `harpoon ci` + official GitHub Action: PR comment bot, HTML report
 - [ ] **v0.4** — shareable web reports (report upload, public links)
 

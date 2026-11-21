@@ -9,7 +9,7 @@ import (
 
 // version is the default for development builds; release builds can inject
 // the real version via -ldflags.
-var version = "0.1.0"
+var version = "0.2.0"
 
 // NewRootCmd assembles the harpoon command tree.
 func NewRootCmd() *cobra.Command {
@@ -24,7 +24,7 @@ as smoke tests in CI.`,
 		Version:      version,
 		SilenceUsage: true,
 	}
-	root.AddCommand(newRunCmd(), newValidateCmd(), newListCmd())
+	root.AddCommand(newRunCmd(), newValidateCmd(), newListCmd(), newTuiCmd())
 	return root
 }
 

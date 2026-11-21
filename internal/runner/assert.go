@@ -12,23 +12,44 @@ import (
 	"github.com/mihai-corder/harpoon/internal/config"
 )
 
-// evaluateExpect checks the expectations against the final response and
-// returns one message per violated assertion, in a stable order.
-func evaluateExpect(e *config.Expect, status int, body []byte, took time.Duration) []string {
-	var failures []string
+// Check is the outcome of a single assertion.
+type Check struct {
+	Kind   string // "status", "contains" or "max_ms"
+	OK     bool
+	Detail string
+}
 
-	if e.Status != 0 && status != e.Status {
-		failures = append(failures, fmt.Sprintf("expected status %d, got %d", e.Status, status))
+// evaluateExpect checks the expectations against the final response and
+// returns one Check per specified assertion, in a stable order.
+func evaluateExpect(e *config.Expect, status int, body []byte, took time.Duration) []Check {
+	var checks []Check
+
+	if e.Status != 0 {
+		ok := status == e.Status
+		detail := fmt.Sprintf("expected status %d, got %d", e.Status, status)
+		if ok {
+			detail = fmt.Sprintf("status is %d", status)
+		}
+		checks = append(checks, Check{Kind: "status", OK: ok, Detail: detail})
 	}
-	if e.Contains != "" && !strings.Contains(string(body), e.Contains) {
-		failures = append(failures, fmt.Sprintf("body does not contain %q", e.Contains))
+	if e.Contains != "" {
+		ok := strings.Contains(string(body), e.Contains)
+		detail := fmt.Sprintf("body does not contain %q", e.Contains)
+		if ok {
+			detail = fmt.Sprintf("body contains %q", e.Contains)
+		}
+		checks = append(checks, Check{Kind: "contains", OK: ok, Detail: detail})
 	}
 	if e.MaxMS > 0 {
-		if ms := took.Milliseconds(); ms > e.MaxMS {
-			failures = append(failures, fmt.Sprintf("took %dms, max allowed %dms", ms, e.MaxMS))
+		ms := took.Milliseconds()
+		ok := ms <= e.MaxMS
+		detail := fmt.Sprintf("took %dms, max allowed %dms", ms, e.MaxMS)
+		if ok {
+			detail = fmt.Sprintf("took %dms (max %dms)", ms, e.MaxMS)
 		}
+		checks = append(checks, Check{Kind: "max_ms", OK: ok, Detail: detail})
 	}
-	return failures
+	return checks
 }
 
 // response resolves {{response.*}} references against one received response.

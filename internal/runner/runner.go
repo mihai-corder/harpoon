@@ -42,14 +42,31 @@ type Result struct {
 	// Failures holds assertion violation messages. A request without Expect
 	// passes as long as the HTTP exchange itself succeeds.
 	Failures []string
+	// Checks holds the per-assertion outcomes when the request had Expect.
+	Checks []Check
+	// Extracted holds the variables pulled from this response.
+	Extracted map[string]string
+	// Headers and Body expose the response for interactive inspection.
+	Headers http.Header
+	Body    []byte
 }
 
 // Passed reports whether the request completed and every assertion held.
 func (r Result) Passed() bool { return r.Err == nil && len(r.Failures) == 0 }
 
+// A Session carries extracted variables across Run calls, mirroring how a
+// user chains requests interactively: run login once, then re-run any
+// authenticated request on its own and still have the token.
+type Session struct {
+	carry map[string]string
+}
+
+// NewSession returns an empty session.
+func NewSession() *Session { return &Session{carry: map[string]string{}} }
+
 // Run executes the collection's requests in order and returns one Result per
-// request. Values extracted from responses are visible to later requests.
-func Run(coll *config.Collection, profile map[string]string, opts Options) []Result {
+// request. Values extracted here stay in the session for later runs.
+func (s *Session) Run(coll *config.Collection, profile map[string]string, opts Options) []Result {
 	if profile == nil {
 		profile = map[string]string{}
 	}
@@ -59,17 +76,22 @@ func Run(coll *config.Collection, profile map[string]string, opts Options) []Res
 
 	// Base scope: collection vars, overridden by the environment profile.
 	base := mergeMaps(coll.Vars, profile)
-	carry := map[string]string{} // values extracted by earlier requests
 
 	results := make([]Result, 0, len(coll.Requests))
 	for _, nr := range coll.Requests {
-		res, extracted := runRequest(nr, base, carry, opts)
+		res, extracted := runRequest(nr, base, s.carry, opts)
 		for k, v := range extracted {
-			carry[k] = v
+			s.carry[k] = v
 		}
 		results = append(results, res)
 	}
 	return results
+}
+
+// Run is a convenience wrapper that uses a fresh session, so extractions do
+// not leak between separate invocations.
+func Run(coll *config.Collection, profile map[string]string, opts Options) []Result {
+	return NewSession().Run(coll, profile, opts)
 }
 
 func runRequest(nr config.NamedRequest, base, carry map[string]string, opts Options) (Result, map[string]string) {
@@ -177,8 +199,16 @@ func runRequest(nr config.NamedRequest, base, carry map[string]string, opts Opti
 	}
 
 	if e := nr.Request.Expect; e != nil {
-		res.Failures = evaluateExpect(e, resp.StatusCode, body, res.Duration)
+		res.Checks = evaluateExpect(e, resp.StatusCode, body, res.Duration)
+		for _, c := range res.Checks {
+			if !c.OK {
+				res.Failures = append(res.Failures, c.Detail)
+			}
+		}
 	}
+	res.Extracted = extracted
+	res.Headers = resp.Header
+	res.Body = body
 	return res, extracted
 }
 

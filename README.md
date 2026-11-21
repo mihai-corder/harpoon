@@ -10,6 +10,8 @@
 ![demo](docs/demo.gif)
 -->
 
+📖 **完整中文用户手册**：[docs/guide.zh-CN.md](docs/guide.zh-CN.md) — 从零开始的安装、配置参考、实战菜谱与排错 FAQ
+
 ## Why harpoon?
 
 Existing tools solve half the workflow. GUI-era clients (Postman/newman) lock collections into a proprietary format; terminal clients (posting, slumber, ATAC) stop at interactive debugging; CI-first tools (hurl) invent their own file format and have no interactive UX. harpoon is one tool for the whole loop:

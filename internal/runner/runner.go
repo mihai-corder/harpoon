@@ -157,7 +157,7 @@ func runRequest(nr config.NamedRequest, base, carry map[string]string, opts Opti
 		req.Header.Set(k, v)
 	}
 	if req.Header.Get("User-Agent") == "" {
-		req.Header.Set("User-Agent", "harpoon/0.1")
+		req.Header.Set("User-Agent", "harpoon")
 	}
 	if nr.Request.Body != nil && req.Header.Get("Content-Type") == "" {
 		req.Header.Set("Content-Type", "application/json")

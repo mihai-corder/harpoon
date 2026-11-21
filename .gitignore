@@ -13,3 +13,6 @@ coverage.*
 .vscode/
 .DS_Store
 Thumbs.db
+
+# wrangler dev local state
+server/.wrangler/

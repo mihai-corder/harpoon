@@ -2,7 +2,7 @@
 
 > Terminal-first API testing. **Collections as code**: debug in the terminal, smoke-test in CI, share the report.
 
-**harpoon** defines API request collections as plain YAML files that live in your repo — versioned, reviewable, diffable. Run them interactively from the terminal, chain variables between requests (login → token → authenticated call), and feed the *exact same files* into CI as smoke tests. No lock-in, no proprietary format, no GUI required.
+**harpoon** defines API request collections as plain YAML files that live in your repo — versioned, reviewable, diffable. Run them from the terminal (CLI or TUI), in the browser, or as CI smoke tests — always the *same files*. Chain variables between requests (login → token → authenticated call). No lock-in, no proprietary format.
 
 ![CI](https://github.com/mihai-corder/harpoon/actions/workflows/ci.yml/badge.svg)
 
@@ -19,7 +19,7 @@ Existing tools solve half the workflow. GUI-era clients (Postman/newman) lock co
 | Collections as plain YAML, git-friendly | ✅ | own format | ✅ | Postman format |
 | Interactive terminal UX | ✅ TUI | ❌ | ✅ | ❌ |
 | CI smoke tests from the same files | ✅ | ✅ | ❌ | ✅ (Postman-locked) |
-| PR report bot + shareable web report | 🔜 v0.3–0.4 | ❌ | ❌ | ❌ |
+| PR report bot + shareable web report | 🔜 v0.4–0.5 | ❌ | ❌ | ❌ |
 
 ## Install
 
@@ -81,6 +81,7 @@ harpoon run collection.yaml --env dev --var password=s3cret
 |---|---|
 | `harpoon run <collection>` | Execute requests in order, print summary. Exit code 1 on any failure — CI-friendly. |
 | `harpoon tui <collection>` | Interactive terminal UI: pick requests, run them, inspect responses. |
+| `harpoon serve <collection>` | Local web UI in your browser: click to run, inspect, browse history. |
 | `harpoon validate <collection>` | Structural + reference checks, no HTTP. Undefined variables are warnings. |
 | `harpoon list <collection>` | List requests in run order. |
 
@@ -101,6 +102,15 @@ A two-pane interface: pick requests on the left, inspect responses on the right 
 | `h` | Session history (newest first) |
 | `ctrl+u` / `ctrl+d` | Scroll the response half a page |
 | `q` | Quit |
+
+## Web UI
+
+```sh
+harpoon serve collection.yaml            # opens http://localhost:8080
+harpoon serve collection.yaml --addr :3000 --open=false
+```
+
+A dark, mouse-first interface served from inside the binary: click requests to run them, inspect status badges, per-assertion results, extracted variables, headers and syntax-highlighted JSON, and browse session history in a slide-over drawer. The frontend is plain HTML/CSS/JS embedded with `//go:embed` — the tool stays a single static executable with zero runtime dependencies, and the same runner session powers it, so variable chains work here too.
 
 Useful flags on `run`:
 
@@ -142,8 +152,9 @@ A request without `expect` passes as long as the HTTP exchange succeeds.
 
 - [x] **v0.1** — core engine: YAML collections, variable chaining, assertions, summary output
 - [x] **v0.2** — TUI: interactive runner, response inspector, session-chained runs, history
-- [ ] **v0.3** — `harpoon ci` + official GitHub Action: PR comment bot, HTML report
-- [ ] **v0.4** — shareable web reports (report upload, public links)
+- [x] **v0.3** — local web UI: `harpoon serve`, embedded frontend, JSON API, session history
+- [ ] **v0.4** — `harpoon ci` + official GitHub Action: PR comment bot, HTML report
+- [ ] **v0.5** — shareable cloud reports (report upload, public links)
 
 ## Development
 

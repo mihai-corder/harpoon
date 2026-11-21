@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -55,15 +54,14 @@ func runCollection(path string, f runFlags) error {
 	if err != nil {
 		return err
 	}
-	requests := coll.Requests
+	target := coll
 	if len(f.only) > 0 {
-		requests, err = selectRequests(coll, f.only)
+		target, err = config.Select(coll, f.only)
 		if err != nil {
 			return err
 		}
 	}
 
-	target := &config.Collection{Name: coll.Name, Vars: coll.Vars, Requests: requests}
 	results := runner.Run(target, profile, runner.Options{CLIVars: cliVars})
 	report.Print(os.Stdout, results)
 
@@ -88,37 +86,6 @@ func parseVars(pairs []string) (map[string]string, error) {
 			return nil, fmt.Errorf("invalid --var %q (want KEY=VALUE)", p)
 		}
 		out[k] = v
-	}
-	return out, nil
-}
-
-func selectRequests(coll *config.Collection, names []string) ([]config.NamedRequest, error) {
-	want := make(map[string]bool, len(names))
-	for _, n := range names {
-		want[n] = true
-	}
-
-	out := make([]config.NamedRequest, 0, len(names))
-	for _, nr := range coll.Requests {
-		if want[nr.Name] {
-			out = append(out, nr)
-			delete(want, nr.Name)
-		}
-	}
-	if len(want) > 0 {
-		unknown := make([]string, 0, len(want))
-		for n := range want {
-			unknown = append(unknown, n)
-		}
-		sort.Strings(unknown)
-
-		available := make([]string, 0, len(coll.Requests))
-		for _, nr := range coll.Requests {
-			available = append(available, nr.Name)
-		}
-		return nil, fmt.Errorf(
-			"unknown request(s): %s (available: %s)",
-			strings.Join(unknown, ", "), strings.Join(available, ", "))
 	}
 	return out, nil
 }

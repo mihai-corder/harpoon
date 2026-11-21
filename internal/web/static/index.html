@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>harpoon</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<header>
+  <div class="brand">harpoon <span id="coll-name" class="dim"></span></div>
+  <div id="status" class="dim"></div>
+</header>
+
+<main>
+  <aside id="list-panel">
+    <div class="panel-title">REQUESTS</div>
+    <ul id="request-list"></ul>
+  </aside>
+
+  <section id="response-panel">
+    <div class="panel-title">RESPONSE</div>
+    <div id="response-body">
+      <p class="dim">Pick a request on the left, then press Run.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <button id="btn-run" class="primary">▶ Run</button>
+  <button id="btn-run-all">▶▶ Run All</button>
+  <button id="btn-history">☰ History</button>
+  <span class="spacer"></span>
+  <span id="busy" class="dim hidden">running…</span>
+</footer>
+
+<div id="history-drawer" class="hidden">
+  <div class="drawer-head">HISTORY <button id="btn-close-history">×</button></div>
+  <div id="history-list"></div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

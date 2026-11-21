@@ -1,0 +1,26 @@
+name: Dogfood
+
+# Dogfooding: harpoon tests itself with its own official action.
+# On pull requests, the action posts a results table as a PR comment —
+# our bot commenting on the PRs that shape it.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run harpoon against the bundled example collection
+        uses: mihai-corder/harpoon@main
+        with:
+          collection: testdata/example/collection.yaml
+          token: ${{ github.token }}

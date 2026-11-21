@@ -2,6 +2,8 @@ package main
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -48,4 +50,33 @@ func TestActionYamlIsValid(t *testing.T) {
 	}
 	assert.Contains(t, stepNames, "Run harpoon ci")
 	assert.Contains(t, stepNames, "Post PR comment")
+}
+
+// TestDogfoodWorkflowIsValid guards the dogfooding workflow: it must keep
+// using the official action against the bundled collection.
+func TestDogfoodWorkflowIsValid(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join(".github", "workflows", "dogfood.yml"))
+	require.NoError(t, err)
+
+	var doc struct {
+		Name string `yaml:"name"`
+		Jobs map[string]struct {
+			Steps []struct {
+				Uses string `yaml:"uses"`
+			} `yaml:"steps"`
+		} `yaml:"jobs"`
+	}
+	require.NoError(t, yaml.Unmarshal(data, &doc))
+
+	assert.Equal(t, "Dogfood", doc.Name)
+	job, ok := doc.Jobs["smoke"]
+	require.True(t, ok, "smoke job must exist")
+
+	usesAction := false
+	for _, s := range job.Steps {
+		if strings.Contains(s.Uses, "mihai-corder/harpoon@") {
+			usesAction = true
+		}
+	}
+	assert.True(t, usesAction, "the workflow must run through the official action")
 }
